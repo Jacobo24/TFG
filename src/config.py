@@ -45,5 +45,11 @@ class ModelConfig:
     beta_x: float = 0.7
     beta_pi: float = 0.3
 
+    # Red entre comunidades
+    intercommunity_base_prob: float = 0.25
+
+    # Dilema del prisionero débil entre comunidades
+    b_community: float = 1.5
+
     # Semilla aleatoria
     seed: int = 42
