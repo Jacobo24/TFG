@@ -15,7 +15,7 @@ class ModelConfig:
     small_world_p: float = 0.1
 
     # Dilema del prisionero débil
-    b: float = 1.5
+    b: float = 1.2
 
     # Condición inicial
     xmin: float = 0.4
@@ -33,13 +33,16 @@ class ModelConfig:
     alpha_R: float = 0.20
     alpha_E: float = 0.15
 
+    # Inercia / velocidad de adaptación social
+    social_adaptation_rate: float = 0.25
+
     # Errores
     epsilon_execution: float = 0.01
 
     # Dinámica Fermi
     lambda_fermi: float = 1.0
-    delta_D: float = 0.5
-    delta_pi: float = 0.5
+    delta_D: float = 0.05
+    delta_pi: float = 0.02
 
     # Nivel intercomunitario
     beta_x: float = 0.7

@@ -122,3 +122,203 @@ def plot_montecarlo_payoff(summary_df, save_path: str | None = None):
         plt.savefig(save_path, dpi=300, bbox_inches="tight")
 
     plt.show()
+
+def plot_b_sensitivity_final_cooperation(summary_df, save_path: str | None = None):
+    """
+    Grafica la cooperación final media en función del parámetro b.
+    """
+    plt.figure(figsize=(8, 5))
+
+    plt.plot(
+        summary_df["b"],
+        summary_df["final_mean_cooperation"],
+        marker="o",
+        linewidth=2
+    )
+
+    plt.xlabel("Parámetro b")
+    plt.ylabel("Cooperación final media")
+    plt.title("Sensibilidad de la cooperación final respecto a b")
+    plt.grid(True)
+    plt.tight_layout()
+
+    if save_path is not None:
+        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+
+    plt.show()
+
+def plot_social_adaptation_sensitivity(summary_df, save_path: str | None = None):
+    """
+    Grafica la cooperación final media según la tasa de adaptación social.
+    """
+    plt.figure(figsize=(8, 5))
+
+    plt.plot(
+        summary_df["social_adaptation_rate"],
+        summary_df["final_mean_cooperation"],
+        marker="o",
+        linewidth=2
+    )
+
+    plt.xlabel("Tasa de adaptación social")
+    plt.ylabel("Cooperación final media")
+    plt.title("Sensibilidad a la inercia social")
+    plt.grid(True)
+    plt.tight_layout()
+
+    if save_path is not None:
+        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+
+    plt.show()
+
+def plot_eta_b_heatmap(summary_df, save_path: str | None = None):
+    """
+    Representa la cooperación final media en función de b y eta_s.
+    """
+    pivot = summary_df.pivot(
+        index="social_adaptation_rate",
+        columns="b",
+        values="mean_final_cooperation"
+    )
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    image = ax.imshow(pivot.values, aspect="auto", origin="lower")
+
+    ax.set_xticks(range(len(pivot.columns)))
+    ax.set_xticklabels([f"{b:.2f}" for b in pivot.columns])
+
+    ax.set_yticks(range(len(pivot.index)))
+    ax.set_yticklabels([f"{eta:.3f}" for eta in pivot.index])
+
+    ax.set_xlabel("Parámetro b")
+    ax.set_ylabel("Tasa de adaptación social")
+    ax.set_title("Cooperación final media según b y adaptación social")
+
+    fig.colorbar(image, ax=ax, label="Cooperación final media")
+
+    plt.tight_layout()
+
+    if save_path is not None:
+        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+
+    plt.show()
+
+
+def plot_eta_b_lines(summary_df, save_path: str | None = None):
+    """
+    Representa la cooperación final media frente a eta_s,
+    separando una curva por cada valor de b.
+    """
+    plt.figure(figsize=(8, 5))
+
+    for b, df_group in summary_df.groupby("b"):
+        df_group = df_group.sort_values("social_adaptation_rate")
+
+        plt.plot(
+            df_group["social_adaptation_rate"],
+            df_group["mean_final_cooperation"],
+            marker="o",
+            linewidth=2,
+            label=f"b={b:.2f}"
+        )
+
+    plt.xlabel("Tasa de adaptación social")
+    plt.ylabel("Cooperación final media")
+    plt.title("Sensibilidad conjunta a b y adaptación social")
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+
+    if save_path is not None:
+        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+
+    plt.show()
+
+def plot_eta_b_heatmaps_by_tin(summary_df, save_dir: str):
+    """
+    Genera un heatmap de cooperación final media para cada valor de Tin.
+
+    Eje X: b
+    Eje Y: social_adaptation_rate
+    Color: mean_final_cooperation
+    """
+    from pathlib import Path
+
+    save_dir = Path(save_dir)
+    save_dir.mkdir(parents=True, exist_ok=True)
+
+    for Tin, df_tin in summary_df.groupby("Tin"):
+        pivot = df_tin.pivot(
+            index="social_adaptation_rate",
+            columns="b",
+            values="mean_final_cooperation"
+        )
+
+        fig, ax = plt.subplots(figsize=(9, 6))
+
+        image = ax.imshow(
+            pivot.values,
+            aspect="auto",
+            origin="lower"
+        )
+
+        ax.set_xticks(range(len(pivot.columns)))
+        ax.set_xticklabels([f"{b:.2f}" for b in pivot.columns])
+
+        ax.set_yticks(range(len(pivot.index)))
+        ax.set_yticklabels([f"{eta:.3f}" for eta in pivot.index])
+
+        ax.set_xlabel("Parámetro b")
+        ax.set_ylabel("Tasa de adaptación social")
+        ax.set_title(f"Cooperación final media | Tin = {Tin}")
+
+        fig.colorbar(image, ax=ax, label="Cooperación final media")
+
+        plt.tight_layout()
+
+        save_path = save_dir / f"heatmap_eta_b_Tin_{Tin}.png"
+        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.show()
+
+        print(f"Heatmap guardado en: {save_path}")
+
+def plot_eta_b_lines_by_tin(summary_df, save_dir: str):
+    """
+    Genera una gráfica de líneas para cada Tin.
+
+    Eje X: social_adaptation_rate
+    Eje Y: mean_final_cooperation
+    Una línea por cada b.
+    """
+    from pathlib import Path
+
+    save_dir = Path(save_dir)
+    save_dir.mkdir(parents=True, exist_ok=True)
+
+    for Tin, df_tin in summary_df.groupby("Tin"):
+        plt.figure(figsize=(9, 6))
+
+        for b, df_group in df_tin.groupby("b"):
+            df_group = df_group.sort_values("social_adaptation_rate")
+
+            plt.plot(
+                df_group["social_adaptation_rate"],
+                df_group["mean_final_cooperation"],
+                marker="o",
+                linewidth=2,
+                label=f"b={b:.2f}"
+            )
+
+        plt.xlabel("Tasa de adaptación social")
+        plt.ylabel("Cooperación final media")
+        plt.title(f"Sensibilidad a b y adaptación social | Tin = {Tin}")
+        plt.grid(True)
+        plt.legend()
+        plt.tight_layout()
+
+        save_path = save_dir / f"lines_eta_b_Tin_{Tin}.png"
+        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.show()
+
+        print(f"Gráfica de líneas guardada en: {save_path}")

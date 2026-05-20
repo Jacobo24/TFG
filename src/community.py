@@ -198,7 +198,14 @@ class Community:
                     new_strategies[i] = self.strategies[i]
 
             else:
-                new_strategies[i] = int(self.rng.random() < p_social[i])
+                current_strategy = self.strategies[i]
+
+                p_effective = (
+                    (1.0 - self.config.social_adaptation_rate) * current_strategy
+                    + self.config.social_adaptation_rate * p_social[i]
+                )
+
+                new_strategies[i] = int(self.rng.random() < p_effective)
 
             # Error de ejecución
             if self.rng.random() < self.config.epsilon_execution:
