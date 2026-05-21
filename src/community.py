@@ -78,16 +78,34 @@ class Community:
     def compute_social_components(self):
         """
         Calcula I, D, R y E para todos los individuos.
+
+        I:
+            Estado interno reciente del individuo.
+
+        D:
+            Reciprocidad directa con doble cara:
+            - para cooperadores: cooperación mutua reciente;
+            - para defectores: cooperación recibida del vecindario.
+
+        R:
+            Reputación/posición relativa con doble lectura:
+            - para cooperadores: posición relativa positiva frente al entorno;
+            - para defectores: presión relativa por estar por debajo del entorno.
+
+        E:
+            Cooperación media del vecindario.
         """
         recent_history = self._get_recent_history()
 
+        # Estado interno: historial propio de cooperación
         I = np.mean(recent_history, axis=0)
 
         D = np.zeros(self.size)
         R = np.zeros(self.size)
         E = np.zeros(self.size)
 
-        reputations = np.mean(recent_history, axis=0)
+        # Estrategia actual o última estrategia disponible
+        current_strategies = self.strategies
 
         for i in range(self.size):
             neighbors = list(self.graph.neighbors(i))
@@ -99,34 +117,76 @@ class Community:
                 continue
 
             # Entorno local: cooperación media reciente de los vecinos
-            E[i] = np.mean(recent_history[:, neighbors])
+            neighbor_history = recent_history[:, neighbors]
+            E_i = float(np.mean(neighbor_history))
+            E[i] = E_i
 
-            # Reputación media de los vecinos
-            R[i] = np.mean(reputations[neighbors])
-
-            # Reciprocidad directa: cooperación mutua reciente con vecinos
+            # Reciprocidad mutua: cooperación correspondida
             mutual_cooperation = []
+
+            # Cooperación recibida: cooperación de los vecinos,
+            # independientemente de lo que haya hecho i
+            received_cooperation = []
 
             for past_strategies in recent_history:
                 for j in neighbors:
                     mutual_cooperation.append(past_strategies[i] * past_strategies[j])
+                    received_cooperation.append(past_strategies[j])
 
-            D[i] = np.mean(mutual_cooperation)
+            D_mutual = float(np.mean(mutual_cooperation))
+            D_received = float(np.mean(received_cooperation))
+
+            # Doble cara de D:
+            # - cooperador: mira cooperación correspondida
+            # - defector: mira cooperación recibida
+            if current_strategies[i] == 1:
+                D[i] = D_mutual
+            else:
+                D[i] = D_received
+
+            # Reputación relativa:
+            # R_raw está en [-1, 1]
+            R_raw = I[i] - E_i
+
+            # Normalización a [0, 1]
+            R_norm = (R_raw + 1.0) / 2.0
+            R_norm = float(np.clip(R_norm, 0.0, 1.0))
+
+            # Opción B:
+            # - cooperador: usa R_norm
+            # - defector: usa presión relativa 1 - R_norm
+            if current_strategies[i] == 1:
+                R[i] = R_norm
+            else:
+                R[i] = 1.0 - R_norm
 
         return I, D, R, E
-    
-    def compute_social_propensity(self) -> np.ndarray:
+
+    def compute_social_propensity(self) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         Calcula la propensión social-relacional a cooperar.
+
+        Usa pesos distintos para cooperadores y defectores.
         """
         I, D, R, E = self.compute_social_components()
 
-        p_social = (
-            self.config.alpha_I * I
-            + self.config.alpha_D * D
-            + self.config.alpha_R * R
-            + self.config.alpha_E * E
-        )
+        p_social = np.zeros(self.size)
+
+        for i in range(self.size):
+            if self.strategies[i] == 1:
+                p_social[i] = (
+                    self.config.alpha_I_C * I[i]
+                    + self.config.alpha_D_C * D[i]
+                    + self.config.alpha_R_C * R[i]
+                    + self.config.alpha_E_C * E[i]
+                )
+            else:
+                p_social[i] = (
+                    self.config.alpha_I_D * I[i]
+                    + self.config.alpha_D_D * D[i]
+                    + self.config.alpha_R_D * R[i]
+                    + self.config.alpha_E_D * E[i]
+                )
 
         return np.clip(p_social, 0.0, 1.0), I, D, R, E
 

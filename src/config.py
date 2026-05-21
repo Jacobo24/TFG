@@ -15,7 +15,7 @@ class ModelConfig:
     small_world_p: float = 0.1
 
     # Dilema del prisionero débil
-    b: float = 1.2
+    b: float = 2.0
 
     # Condición inicial
     xmin: float = 0.4
@@ -25,16 +25,22 @@ class ModelConfig:
     memory_length: int = 3
 
     # Rondas internas
-    Tin: int = 100
+    Tin: int = 1000
 
-    # Pesos de la propensión social
-    alpha_I: float = 0.35
-    alpha_D: float = 0.30
-    alpha_R: float = 0.20
-    alpha_E: float = 0.15
+    # Pesos sociales para cooperadores
+    alpha_I_C: float = 0.35
+    alpha_D_C: float = 0.25
+    alpha_R_C: float = 0.15
+    alpha_E_C: float = 0.25
+
+    # Pesos sociales para defectores
+    alpha_I_D: float = 0.15
+    alpha_D_D: float = 0.40
+    alpha_R_D: float = 0.25
+    alpha_E_D: float = 0.20
 
     # Inercia / velocidad de adaptación social
-    social_adaptation_rate: float = 0.25
+    social_adaptation_rate: float = 0.20
 
     # Errores
     epsilon_execution: float = 0.01
