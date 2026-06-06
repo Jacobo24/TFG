@@ -1,0 +1,2 @@
+run_id,seed,final_mean_cooperation,final_std_cooperation_between_communities,final_mean_payoff,expected_global_cooperation,observed_global_cooperation,num_intercommunity_edges,b,Tin,social_adaptation_rate,epsilon_perception,epsilon_execution,delta_D,delta_pi
+0,1000,0.2991820365744635,0.029468718384534395,2.8880938121779063,0.3583070201144571,0.366,28225,2.0,800,0.2,0.02,0.01,0.05,0.1
